@@ -6,12 +6,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "import:standings": "tsx scripts/import-weekly-standings.mjs"
   },
   "dependencies": {
+    "@apollo/client": "^4.2.7",
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.109.0",
+    "apollo-server-micro": "^3.13.0",
+    "better-sqlite3": "^12.11.1",
+    "graphql": "^16.14.2",
+    "graphql-tag": "^2.12.7",
     "next": "16.2.10",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "tsx": "^4.23.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
