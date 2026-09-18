@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client";
 import { getAuthenticatedClient } from "@/lib/apollo-client";
+import type { EventStandingsQueryData } from "@/types/events";
 
 export interface EventRecord {
   id: string;
@@ -28,8 +29,55 @@ const storeEventsQuery = gql`
         status
         title
         scheduledStartTime
-        __typename
       }
+    }
+  }
+`;
+
+const eventStandingsQuery = gql`
+  query getGameStateAtRound($eventId: ID!, $round: Int!) {
+    gameStateV2AtRound(eventId: $eventId, round: $round) {
+      ...GameStateFields
+    }
+  }
+
+  fragment GameStateFields on GameStateV2 {
+    eventId
+    rounds {
+      ...RoundFields
+    }
+    teams {
+      ...GameStateTeamFields
+    }
+  }
+
+  fragment RoundFields on RoundV2 {
+    roundId
+    roundNumber
+    standings {
+      ...StandingFields
+    }
+  }
+
+  fragment StandingFields on TeamStandingV2 {
+    teamId
+    rank
+    wins
+    losses
+    draws
+    matchPoints
+    gameWinPercent
+    opponentGameWinPercent
+    opponentMatchWinPercent
+  }
+
+  fragment GameStateTeamFields on TeamV2 {
+    teamId
+    players {
+      personaId
+      displayName
+      firstName
+      lastName
     }
   }
 `;
@@ -66,4 +114,21 @@ export async function getEvents(): Promise<EventRecord[]> {
   return events
     .filter((event): event is EventRecord => Boolean(event?.id))
     .reverse();
+}
+
+export async function getEventStandings(
+  eventId: string,
+  round: number = 3,
+): Promise<EventStandingsQueryData> {
+  const { data } = await (
+    await getAuthenticatedClient()
+  ).query({
+    query: eventStandingsQuery,
+    variables: { eventId, round },
+    fetchPolicy: "no-cache",
+  });
+
+  const standingsData = data as EventStandingsQueryData;
+
+  return standingsData;
 }

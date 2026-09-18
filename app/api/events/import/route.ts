@@ -1,4 +1,11 @@
 import { NextResponse } from "next/server";
+import { getEventStandings } from "@/lib/events";
+import type {
+  EventTeam,
+  ImportedEvent,
+  ImportedPlayer,
+  ImportedStanding,
+} from "@/types/events";
 
 export const runtime = "nodejs";
 
@@ -6,15 +13,7 @@ interface ImportRequest {
   eventId?: unknown;
 }
 
-async function fetchEventDetails(eventId: string) {
-  // TODO: Replace with the EventLink GraphQL event-details query.
-  return {
-    id: eventId,
-    rawData: null,
-  };
-}
-
-async function writeEventToDatabase(event: Awaited<ReturnType<typeof fetchEventDetails>>) {
+async function writeEventToDatabase(event: ImportedEvent) {
   // TODO: Replace with the Supabase event upsert once the database is configured.
   return {
     ...event,
@@ -41,8 +40,31 @@ export async function POST(request: Request) {
   }
 
   try {
-    const eventDetails = await fetchEventDetails(eventId);
-    const importedEvent = await writeEventToDatabase(eventDetails);
+    const eventDetails = await getEventStandings(eventId);
+
+    const teams: EventTeam[] = eventDetails.gameStateV2AtRound.teams;
+    const players: ImportedPlayer[] = teams.flatMap((team) => {
+      return team.players.map((player) => ({
+        ...player,
+        teamId: team.teamId,
+      }));
+    });
+    const standings: ImportedStanding[] =
+      eventDetails.gameStateV2AtRound.rounds[0].standings.map((standing) => {
+        const playerId = players.find(
+          (player) => player.teamId === standing.teamId,
+        )?.personaId;
+        return {
+          ...standing,
+          playerId,
+        };
+      });
+
+    const importedEvent = await writeEventToDatabase({
+      eventId,
+      standings,
+      players,
+    });
 
     return NextResponse.json({
       event: importedEvent,
