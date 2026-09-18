@@ -1,4 +1,11 @@
 import type { Metadata } from "next";
+import { Noto_Sans } from "next/font/google";
+import { cn } from "@/lib/utils";
+import "./globals.css";
+
+import Navigation from "./navigation";
+
+const notoSans = Noto_Sans({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -11,8 +18,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={cn("font-sans", notoSans.variable)}>
+      <body>
+        <Navigation />
+        {children}
+      </body>
     </html>
   );
 }
