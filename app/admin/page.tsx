@@ -1,4 +1,5 @@
 import AuthenticationCard from "./authentication-card";
+import EventsCard from "./events-card";
 
 export default function Admin() {
   return (
@@ -14,8 +15,9 @@ export default function Admin() {
           Manage league data and connected EventLink services.
         </p>
       </section>
-      <section className="grid gap-6 md:grid-cols-3">
+      <section className="grid items-start gap-6 md:grid-cols-3">
         <AuthenticationCard />
+        <EventsCard />
       </section>
     </main>
   );
