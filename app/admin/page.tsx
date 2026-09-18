@@ -1,3 +1,5 @@
+import AuthenticationCard from "./authentication-card";
+
 export default function Admin() {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-12 lg:px-8">
@@ -11,6 +13,9 @@ export default function Admin() {
         <p className="mt-3 text-muted-foreground">
           Manage league data and connected EventLink services.
         </p>
+      </section>
+      <section className="grid gap-6 md:grid-cols-3">
+        <AuthenticationCard />
       </section>
     </main>
   );
