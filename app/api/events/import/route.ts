@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getEventStandingsByRound, getEventMetadata } from "@/lib/events";
-import { archiveEvent } from "@/lib/supabase-server";
+import { addEvent, archiveEvent } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
 
@@ -42,7 +42,9 @@ export async function POST(request: Request) {
       eventMeta,
       eventStandingsByRound,
     });
-
+    if (eventMeta.event) {
+      await addEvent(eventMeta.event);
+    }
     return NextResponse.json({
       meta: eventMeta,
       events: importedResult,

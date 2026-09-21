@@ -178,6 +178,7 @@ export interface EventRegistration {
   displayName: string;
   firstName: string;
   lastName: string;
+  email?: string | null;
   status: string;
   preferredTableNumber: number | null;
   checkinRole: string | null;
