@@ -1,24 +1,11 @@
 import { NextResponse } from "next/server";
-import { getEventStandings } from "@/lib/events";
-import type {
-  EventTeam,
-  ImportedEvent,
-  ImportedPlayer,
-  ImportedStanding,
-} from "@/types/events";
+import { getEventStandingsByRound, getEventMetadata } from "@/lib/events";
+import { archiveEvent } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
 
 interface ImportRequest {
   eventId?: unknown;
-}
-
-async function writeEventToDatabase(event: ImportedEvent) {
-  // TODO: Replace with the Supabase event upsert once the database is configured.
-  return {
-    ...event,
-    persisted: false,
-  };
 }
 
 export async function POST(request: Request) {
@@ -40,34 +27,25 @@ export async function POST(request: Request) {
   }
 
   try {
-    const eventDetails = await getEventStandings(eventId);
+    const eventMeta = await getEventMetadata(eventId);
+    const firstRound = await getEventStandingsByRound(eventId, 1);
+    const totalRounds = firstRound.gameStateV2AtRound.currentRoundNumber;
+    const remainingRounds = await Promise.all(
+      Array.from({ length: Math.max(totalRounds - 1, 0) }, (_, index) =>
+        getEventStandingsByRound(eventId, index + 2),
+      ),
+    );
+    const eventStandingsByRound = [firstRound, ...remainingRounds];
 
-    const teams: EventTeam[] = eventDetails.gameStateV2AtRound.teams;
-    const players: ImportedPlayer[] = teams.flatMap((team) => {
-      return team.players.map((player) => ({
-        ...player,
-        teamId: team.teamId,
-      }));
-    });
-    const standings: ImportedStanding[] =
-      eventDetails.gameStateV2AtRound.rounds[0].standings.map((standing) => {
-        const playerId = players.find(
-          (player) => player.teamId === standing.teamId,
-        )?.personaId;
-        return {
-          ...standing,
-          playerId,
-        };
-      });
-
-    const importedEvent = await writeEventToDatabase({
+    const importedResult = await archiveEvent({
       eventId,
-      standings,
-      players,
+      eventMeta,
+      eventStandingsByRound,
     });
 
     return NextResponse.json({
-      event: importedEvent,
+      meta: eventMeta,
+      events: importedResult,
       message: "Event import flow stubbed successfully.",
     });
   } catch (error) {
