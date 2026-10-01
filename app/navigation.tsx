@@ -27,7 +27,13 @@ export default function Navigation() {
             <NavigationMenuItem>
               <NavigationMenuLink
                 className={navigationMenuTriggerStyle()}
-                render={<Link href="/standings">Standings</Link>}
+                render={<Link href="/standings">Leaderboard</Link>}
+              />
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink
+                className={navigationMenuTriggerStyle()}
+                render={<Link href="/events">Events</Link>}
               />
             </NavigationMenuItem>
             <NavigationMenuItem>
