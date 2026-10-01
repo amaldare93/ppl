@@ -348,3 +348,43 @@ export async function addEvent(
 
   return { eventRow: data, playerRows };
 }
+
+export async function getPlayersByIds(playerIds: string[]) {}
+
+export async function getEvent(eventId: string) {
+  const { data: event, error: eventError } = await getSupabaseServerClient()
+    .from("events")
+    .select("el_event_id, title, start_time, tags, players")
+    .eq("el_event_id", eventId)
+    .single();
+
+  const { data: players, error: playerError } = await getSupabaseServerClient()
+    .from("players")
+    .select("id, el_persona_id, display_name, first_name, last_name")
+    .in("id", event?.players ?? []);
+
+  if (eventError || playerError) {
+    throw eventError || playerError;
+  }
+
+  return { event, players };
+}
+
+export async function getEvents() {
+  const { data, error } = await getSupabaseServerClient()
+    .from("events")
+    .select("el_event_id, title, start_time, tags")
+    .order("start_time", { ascending: false })
+    .limit(10);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.el_event_id,
+    title: row.title,
+    scheduledStartTime: row.start_time,
+    tags: row.tags,
+  }));
+}

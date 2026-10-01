@@ -5,11 +5,10 @@ export default async function Standings() {
 
   try {
     leaderboard = await getSeasonLeaderboard(
-      "2026-09-01T00:00:00.000Z",
+      "2026-09-28T00:00:00.000Z",
       "2026-10-01T00:00:00.000Z",
       3,
     );
-    console.log("Leaderboard:", leaderboard);
   } catch (error) {
     console.error("Failed to load leaderboard:", error);
   }
