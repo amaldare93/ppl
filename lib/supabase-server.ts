@@ -349,8 +349,6 @@ export async function addEvent(
   return { eventRow: data, playerRows };
 }
 
-export async function getPlayersByIds(playerIds: string[]) {}
-
 export async function getEvent(eventId: string) {
   const { data: event, error: eventError } = await getSupabaseServerClient()
     .from("events")
