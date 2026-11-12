@@ -21,8 +21,12 @@ function formatDate(date: string | null | undefined) {
 
 export default async function EventPage({ params }: EventPageProps) {
   const { event_id: eventId } = await params;
-  const { event, players } = await getEvent(eventId);
-
+  const { event, players, eventStandings } = await getEvent(eventId);
+  console.log(`[events] fetched event ${eventId}`, {
+    event,
+    players,
+    eventStandings,
+  });
   if (!event) {
     notFound();
   }

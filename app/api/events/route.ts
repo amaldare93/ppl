@@ -8,7 +8,6 @@ export async function GET() {
     return NextResponse.json({ events: await getEvents() });
   } catch (error) {
     console.error("[events] failed to load recent events", error);
-
     return NextResponse.json(
       {
         events: [],
