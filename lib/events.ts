@@ -373,7 +373,7 @@ const eventStandingsQuery = gql`
 function getCurrentSeasonFilter(storeKey: StoreKey) {
   const year = new Date().getUTCFullYear();
   const start = new Date(`${year}-09-01T00:00:00.000Z`);
-  const end = new Date(`${year}-09-30T23:59:59.999Z`);
+  const end = new Date(`${year}-12-30T23:59:59.999Z`);
 
   return {
     startDate: start.toISOString(),
@@ -420,7 +420,7 @@ export async function getEventMetadata(
     },
     fetchPolicy: "no-cache",
   });
-
+  console.log(`[events] fetched metadata for event ${eventId}`, { data });
   return data as EventMetaQueryData;
 }
 
@@ -437,6 +437,11 @@ export async function getEventStandingsByRound(
   });
 
   const standingsData = data as EventStandingsQueryData;
-
+  console.log(
+    `[events] fetched standings for event ${eventId} round ${round}`,
+    {
+      standingsData,
+    },
+  );
   return standingsData;
 }

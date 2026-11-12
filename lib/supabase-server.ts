@@ -60,6 +60,10 @@ export async function addPlayers(eventMeta: EventMetaQueryData) {
         email: player.email,
         first_name: player.firstName,
         last_name: player.lastName,
+        full_name:
+          player.firstName && player.lastName
+            ? `${player.firstName} ${player.lastName}`
+            : null,
       })),
       { onConflict: "el_persona_id" },
     )
@@ -239,7 +243,13 @@ export async function addEventRounds(
 
   return data as EventRoundRow[];
 }
-
+export async function addStandings2({ eventId, roundNumber, tableData }) {
+  console.log("[events/upload] adding standings", {
+    eventId,
+    roundNumber,
+    tableData,
+  });
+}
 export async function addStandings(
   eventId: string,
   roundData: EventStandingsQueryData[],
@@ -317,6 +327,58 @@ export async function addStandings(
   return data;
 }
 
+// {
+//     "filename": "9-28-26 PGS Round 3 standings page print.pdf",
+//     "tableData": [
+//         {
+//             "RANK": "1",
+//             "NAME": "Alex Rocke",
+//             "POINTS": "9",
+//             "W/L/D": "3/0/0",
+//             "OMW%": "55.6%",
+//             "GW%": "85.7%",
+//             "OGW%": "51.5%"
+//         },
+//     ],
+//     "title": "PGS Monday Pauper",
+//     "date": "10/8/26",
+//     "time": "8:32 AM",
+//     "url": "https://eventlink.wizards.com/stores/13099/events/11492184/rounds/3/standings",
+//     "page": "1/1",
+//     "storeId": "13099",
+//     "eventId": "11492184",
+//     "roundNumber": "3"
+
+type EventData = {
+  title: string;
+  date: string;
+  time: string;
+  page: string;
+  storeId: string;
+  eventId: string;
+  roundNumber: string;
+};
+
+export async function addEvent2(event: EventData) {
+  const { data, error } = await getSupabaseServerClient()
+    .from("events")
+    .upsert(
+      {
+        title: event.title,
+        start_time: new Date(event.date).toISOString(),
+        el_event_id: event.eventId,
+      },
+      { onConflict: "el_event_id" },
+    )
+    .select("el_event_id, title, start_time");
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
 export async function addEvent(
   event: NonNullable<EventMetaQueryData["event"]>,
 ) {
@@ -361,11 +423,21 @@ export async function getEvent(eventId: string) {
     .select("id, el_persona_id, display_name, first_name, last_name")
     .in("id", event?.players ?? []);
 
-  if (eventError || playerError) {
-    throw eventError || playerError;
+  const {
+    data: eventStandings,
+    error: eventStandingsError,
+  } = await getSupabaseServerClient()
+    .from("event_round_standings")
+    .select("*")
+    .eq("event_id", eventId)
+    .eq("round_number", 3)
+    .order("rank", { ascending: true });
+
+  if (eventError || playerError || eventStandingsError) {
+    throw eventError || playerError || eventStandingsError;
   }
 
-  return { event, players };
+  return { event, players, eventStandings: eventStandings ?? [] };
 }
 
 export async function getEvents() {
@@ -385,4 +457,18 @@ export async function getEvents() {
     scheduledStartTime: row.start_time,
     tags: row.tags,
   }));
+}
+
+export async function findPlayerByName(playerName: string) {
+  const { data, error } = await getSupabaseServerClient()
+    .from("players")
+    .select("id, el_persona_id, display_name, first_name, last_name")
+    .or(`full_name.like.%${playerName}%`)
+    .limit(10);
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
 }

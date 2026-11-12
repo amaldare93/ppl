@@ -14,7 +14,6 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 function formatEventDate(date: string | null | undefined) {
   return date ? new Date(date).toLocaleDateString() : "Date unavailable";
