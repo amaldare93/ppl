@@ -243,7 +243,15 @@ export async function addEventRounds(
 
   return data as EventRoundRow[];
 }
-export async function addStandings2({ eventId, roundNumber, tableData }) {
+export async function addStandings2({
+  eventId,
+  roundNumber,
+  tableData,
+}: {
+  eventId: string;
+  roundNumber: string;
+  tableData: Record<string, string>[];
+}) {
   console.log("[events/upload] adding standings", {
     eventId,
     roundNumber,
@@ -423,15 +431,13 @@ export async function getEvent(eventId: string) {
     .select("id, el_persona_id, display_name, first_name, last_name")
     .in("id", event?.players ?? []);
 
-  const {
-    data: eventStandings,
-    error: eventStandingsError,
-  } = await getSupabaseServerClient()
-    .from("event_round_standings")
-    .select("*")
-    .eq("event_id", eventId)
-    .eq("round_number", 3)
-    .order("rank", { ascending: true });
+  const { data: eventStandings, error: eventStandingsError } =
+    await getSupabaseServerClient()
+      .from("event_round_standings")
+      .select("*")
+      .eq("event_id", eventId)
+      .eq("round_number", 3)
+      .order("rank", { ascending: true });
 
   if (eventError || playerError || eventStandingsError) {
     throw eventError || playerError || eventStandingsError;
